@@ -3,6 +3,7 @@ import re
 import json
 import yaml
 import socket
+import platform
 import subprocess
 
 
@@ -116,10 +117,30 @@ def check_password(password):
     # 如果满足所有条件，则返回True
     return True
 
+def check_choco_installed():
+    try:
+        # 检查是否安装了 choco
+        subprocess.run(['choco', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+def install_choco():
+    try:
+        print("在 Windows 系统上，正在安装 Chocolatey...")
+        # 使用 PowerShell 安装 choco
+        subprocess.run(
+            ['powershell', '-Command', 'Set-ExecutionPolicy Bypass -Scope Process -Force; iwr https://chocolatey.org/install.ps1 -UseBasicP  | iex'],
+            check=True
+        )
+        print("Chocolatey 安装成功！")
+    except subprocess.CalledProcessError:
+        raise ValueError("通过 PowerShell 安装 Chocolatey 失败，请手动安装。")
+
 def check_ffmpeg_installed():
     ffmpeg_installed = False
     try:
-        # 执行ffmpeg -version命令，并捕获输出
+        # 执行 ffmpeg -version 命令，并捕获输出
         result = subprocess.run(
             ['ffmpeg', '-version'],
             stdout=subprocess.PIPE,
@@ -131,13 +152,28 @@ def check_ffmpeg_installed():
         output = result.stdout + result.stderr
         if 'ffmpeg version' in output.lower():
             ffmpeg_installed = True
-        return False
+        return ffmpeg_installed
     except (subprocess.CalledProcessError, FileNotFoundError):
         # 命令执行失败或未找到
         ffmpeg_installed = False
+
     if not ffmpeg_installed:
-        error_msg = "您的电脑还没正确安装ffmpeg\n"
-        error_msg += "\n建议您：\n"
-        error_msg += "1、按照项目的安装文档，正确进入conda环境\n"
-        error_msg += "2、查阅安装文档，如何在conda环境中安装ffmpeg\n"
-        raise ValueError(error_msg)
+        error_msg = "未正确安装 ffmpeg\n"
+        # 根据操作系统判断是否为 Windows 并自动安装 ffmpeg
+        if platform.system() == 'Windows':
+            print("在 Windows 系统上，检查是否安装了 Chocolatey...")
+            if not check_choco_installed():
+                install_choco()
+
+            print("正在使用 choco 安装 ffmpeg...")
+            try:
+                # 使用 choco 安装 ffmpeg
+                subprocess.run(['choco', 'install', 'ffmpeg', '-y'], check=True)
+                print("ffmpeg 安装成功！")
+                return True
+            except subprocess.CalledProcessError:
+                raise ValueError("通过 choco 安装 ffmpeg 失败，请手动安装 ffmpeg。")
+        else:
+            raise ValueError(error_msg)
+
+    return ffmpeg_installed

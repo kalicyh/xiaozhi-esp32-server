@@ -1,5 +1,9 @@
 from abc import ABC, abstractmethod
 from config.logger import setup_logging
+import os
+import sys
+DLL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+os.environ["PATH"] = DLL_DIR + os.pathsep + os.environ.get("PATH", "")
 import opuslib_next
 import time
 import numpy as np

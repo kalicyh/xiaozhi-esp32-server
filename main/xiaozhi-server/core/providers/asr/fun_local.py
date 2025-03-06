@@ -6,6 +6,8 @@ import io
 from config.logger import setup_logging
 from typing import Optional, Tuple, List
 import uuid
+DLL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+os.environ["PATH"] = DLL_DIR + os.pathsep + os.environ.get("PATH", "")
 import opuslib_next
 from core.providers.asr.base import ASRProviderBase
 

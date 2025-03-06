@@ -2,6 +2,9 @@ import asyncio
 from config.logger import setup_logging
 import os
 import numpy as np
+import sys
+DLL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+os.environ["PATH"] = DLL_DIR + os.pathsep + os.environ.get("PATH", "")
 import opuslib_next
 from pydub import AudioSegment
 from abc import ABC, abstractmethod
